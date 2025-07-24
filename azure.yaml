@@ -1,0 +1,15 @@
+name: customer-management
+metadata:
+  template: Customer Management System
+services:
+  api:
+    project: CustomerManagement.Api/CustomerManagement.Api.csproj
+    language: dotnet
+    host: appservice
+  ui:
+    project: CustomerManagement.UI/CustomerManagement.UI.csproj
+    language: dotnet
+    host: appservice
+infra:
+  path: deploy/azure
+  provider: bicep

@@ -1,0 +1,43 @@
+name: Pull Request Validation
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      
+    - name: Check Bicep files
+      run: |
+        if [ -f "deploy/azure/main.bicep" ]; then
+          # Install Bicep CLI if not already installed
+          if ! command -v bicep &> /dev/null; then
+            curl -Lo bicep https://github.com/Azure/bicep/releases/latest/download/bicep-linux-x64
+            chmod +x ./bicep
+            sudo mv ./bicep /usr/local/bin/bicep
+          fi
+          
+          # Validate Bicep files
+          echo "Validating Bicep files..."
+          bicep build deploy/azure/main.bicep --stdout
+        else
+          echo "No Bicep files found to validate."
+        fi

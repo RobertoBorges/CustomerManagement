@@ -1,0 +1,216 @@
+name: Deploy to Azure
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'dev'
+        type: choice
+        options:
+        - dev
+        - test
+        - prod
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --no-restore
+      
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+      
+    - name: Publish API
+      run: dotnet publish CustomerManagement.Api/CustomerManagement.Api.csproj -c Release -o ${{github.workspace}}/publish/api
+      
+    - name: Publish UI
+      run: dotnet publish CustomerManagement.UI/CustomerManagement.UI.csproj -c Release -o ${{github.workspace}}/publish/ui
+      
+    - name: Upload API artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: api-artifact
+        path: ${{github.workspace}}/publish/api
+        
+    - name: Upload UI artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: ui-artifact
+        path: ${{github.workspace}}/publish/ui
+
+  deploy-infrastructure:
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    outputs:
+      apiAppServiceName: ${{ steps.deploy-infra.outputs.apiAppServiceName }}
+      uiAppServiceName: ${{ steps.deploy-infra.outputs.uiAppServiceName }}
+      keyVaultName: ${{ steps.deploy-infra.outputs.keyVaultName }}
+      resourceGroupName: ${{ steps.deploy-infra.outputs.resourceGroupName }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Deploy Infrastructure
+      id: deploy-infra
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: 'latest'
+        inlineScript: |
+          $resourceGroupName = "rg-custmgmt-${{ github.event.inputs.environment }}"
+          
+          # Check if resource group exists
+          $rgExists = az group show --name $resourceGroupName --query name -o tsv 2>/dev/null
+          
+          if (-not $rgExists) {
+            Write-Host "Creating resource group $resourceGroupName..."
+            az group create --name $resourceGroupName --location "eastus"
+          }
+          
+          # Generate a secure password for SQL Server
+          $sqlPassword = -join ((48..57) + (65..90) + (97..122) | Get-Random -Count 16 | ForEach-Object { [char]$_ })
+          
+          # Deploy infrastructure using Bicep
+          Write-Host "Deploying infrastructure..."
+          $deploymentName = "deployment-$(Get-Date -Format 'yyyyMMdd-HHmmss')"
+          
+          # First do a what-if deployment
+          Write-Host "Performing what-if analysis..."
+          az deployment group what-if `
+            --name $deploymentName `
+            --resource-group $resourceGroupName `
+            --template-file deploy/azure/main.bicep `
+            --parameters environmentName=${{ github.event.inputs.environment }} `
+                        sqlAdminLogin=sqladmin `
+                        sqlAdminPassword=$sqlPassword
+          
+          # Then do the actual deployment
+          $deployment = az deployment group create `
+            --name $deploymentName `
+            --resource-group $resourceGroupName `
+            --template-file deploy/azure/main.bicep `
+            --parameters environmentName=${{ github.event.inputs.environment }} `
+                        sqlAdminLogin=sqladmin `
+                        sqlAdminPassword=$sqlPassword `
+            --output json | ConvertFrom-Json
+          
+          # Get the deployment outputs
+          $apiAppServiceName = ($deployment.properties.outputs.apiAppServiceUrl.value -split "//")[1].Split('.')[0]
+          $uiAppServiceName = ($deployment.properties.outputs.uiAppServiceUrl.value -split "//")[1].Split('.')[0]
+          $keyVaultName = ($deployment.properties.outputs.keyVaultUrl.value -split "//")[1].Split('.')[0]
+          
+          # Store SQL password in Key Vault
+          az keyvault secret set --vault-name $keyVaultName --name "SqlAdminPassword" --value $sqlPassword
+          
+          # Output variables for subsequent jobs
+          Write-Host "Setting output variables..."
+          echo "apiAppServiceName=$apiAppServiceName" >> $GITHUB_OUTPUT
+          echo "uiAppServiceName=$uiAppServiceName" >> $GITHUB_OUTPUT
+          echo "keyVaultName=$keyVaultName" >> $GITHUB_OUTPUT
+          echo "resourceGroupName=$resourceGroupName" >> $GITHUB_OUTPUT
+
+  deploy-api:
+    needs: deploy-infrastructure
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: Download API artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: api-artifact
+        path: api
+        
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Deploy API to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ needs.deploy-infrastructure.outputs.apiAppServiceName }}
+        package: api
+
+  deploy-ui:
+    needs: [deploy-infrastructure, deploy-api]
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - name: Download UI artifact
+      uses: actions/download-artifact@v3
+      with:
+        name: ui-artifact
+        path: ui
+        
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+        
+    - name: Deploy UI to Azure App Service
+      uses: azure/webapps-deploy@v2
+      with:
+        app-name: ${{ needs.deploy-infrastructure.outputs.uiAppServiceName }}
+        package: ui
+
+  run-database-migrations:
+    needs: [deploy-infrastructure, deploy-api]
+    runs-on: ubuntu-latest
+    environment: ${{ github.event.inputs.environment }}
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '8.0.x'
+        
+    - name: Install EF Core tools
+      run: dotnet tool install --global dotnet-ef
+      
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.AZURE_CREDENTIALS }}
+    
+    - name: Run migrations
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: 'latest'
+        inlineScript: |
+          $resourceGroupName = "${{ needs.deploy-infrastructure.outputs.resourceGroupName }}"
+          $keyVaultName = "${{ needs.deploy-infrastructure.outputs.keyVaultName }}"
+          
+          # Get SQL Server name
+          $sqlServerName = az resource list --resource-group $resourceGroupName --resource-type "Microsoft.Sql/servers" --query "[0].name" -o tsv
+          
+          # Get SQL password from Key Vault
+          $sqlPassword = az keyvault secret show --vault-name $keyVaultName --name "SqlAdminPassword" --query "value" -o tsv
+          
+          # Create connection string for EF Core migrations
+          $connectionString = "Server=tcp:$sqlServerName.database.windows.net,1433;Initial Catalog=CustomerManagementDb;Persist Security Info=False;User ID=sqladmin;Password=$sqlPassword;MultipleActiveResultSets=True;Encrypt=True;TrustServerCertificate=False;Connection Timeout=30;"
+          
+          # Run migrations
+          dotnet ef database update --project CustomerManagement.Infrastructure --startup-project CustomerManagement.Api --connection "$connectionString"
