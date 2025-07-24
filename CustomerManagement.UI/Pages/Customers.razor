@@ -15,7 +15,7 @@
             <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
         </MudItem>
         <MudItem xs="12" md="6" Class="d-flex justify-end">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Link="/customers/create">Add Customer</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Href="/customers/create">Add Customer</MudButton>
         </MudItem>
     </MudGrid>
 </MudPaper>
@@ -69,8 +69,8 @@ else
 }
 
 @code {
-    private List<CustomerDto> customers;
-    private CustomerDto selectedCustomer;
+    private List<CustomerDto> customers = new();
+    private CustomerDto selectedCustomer = default!;
     private string searchString = "";
     private string selectedStatus = "";
     private IEnumerable<string> selectedStatusValues = new HashSet<string>();
