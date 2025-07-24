@@ -1,5 +1,5 @@
-using CustomerManagement.Application;
-using CustomerManagement.Infrastructure;
+using CustomerManagement.Application; // For ApplicationServiceRegistration
+using CustomerManagement.Infrastructure; // For InfrastructureServiceRegistration
 using CustomerManagement.Infrastructure.Data;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,8 +12,8 @@ using Microsoft.OpenApi.Models;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddApplicationServices();
-builder.Services.AddInfrastructureServices(builder.Configuration);
+builder.Services.AddApplicationServices(); // Using ApplicationServiceRegistration
+builder.Services.AddInfrastructureServices(builder.Configuration); // Using InfrastructureServiceRegistration
 
 builder.Services.AddControllers();
 

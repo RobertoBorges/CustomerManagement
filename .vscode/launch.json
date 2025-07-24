@@ -26,7 +26,7 @@
             "type": "blazorwasm",
             "request": "launch",
             "cwd": "${workspaceFolder}/CustomerManagement.UI",
-            "url": "https://localhost:5001",
+            "url": "http://localhost:5149",
             "browser": "edge"
         },
         {

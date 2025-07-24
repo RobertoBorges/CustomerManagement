@@ -1,0 +1,195 @@
+-- Create the database
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'CustomerManagementDB')
+BEGIN
+    CREATE DATABASE CustomerManagementDB;
+END
+GO
+
+USE CustomerManagementDB;
+GO
+
+-- Create the Customers table if it doesn't exist
+IF NOT EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Customers]') AND type in (N'U'))
+BEGIN
+    CREATE TABLE [dbo].[Customers](
+        [CustomerId] NVARCHAR(50) PRIMARY KEY,
+        [FirstName] NVARCHAR(100) NOT NULL,
+        [LastName] NVARCHAR(100) NOT NULL,
+        [Email] NVARCHAR(100),
+        [PhoneNumber] NVARCHAR(50),
+        [StreetAddress] NVARCHAR(200),
+        [City] NVARCHAR(100),
+        [StateProvince] NVARCHAR(100),
+        [PostalCode] NVARCHAR(20),
+        [Country] NVARCHAR(100),
+        [CompanyName] NVARCHAR(200),
+        [CustomerType] NVARCHAR(50),
+        [RegistrationDate] DATE,
+        [PaymentMethod] NVARCHAR(50),
+        [Notes] NVARCHAR(500),
+        [Status] NVARCHAR(50)
+    );
+END
+GO
+
+-- Clear existing data to avoid duplicates
+IF EXISTS (SELECT * FROM sys.objects WHERE object_id = OBJECT_ID(N'[dbo].[Customers]') AND type in (N'U'))
+BEGIN
+    TRUNCATE TABLE [dbo].[Customers];
+END
+GO
+
+-- Create a temporary procedure to insert all customer data
+CREATE OR ALTER PROCEDURE InsertCustomerData
+AS
+BEGIN
+    -- Customer data insertion from CSV file
+    INSERT INTO [dbo].[Customers] (
+        [CustomerId], [FirstName], [LastName], [Email], [PhoneNumber], 
+        [StreetAddress], [City], [StateProvince], [PostalCode], [Country], 
+        [CompanyName], [CustomerType], [RegistrationDate], [PaymentMethod], [Notes], [Status]
+    )
+    VALUES 
+    ('CM001', 'John', 'Smith', 'john.smith@email.com', '+1-555-123-4567', '123 Main St', 'New York', 'NY', '10001', 'USA', 'ABC Corp', 'Business', '2023-01-15', 'Credit Card', 'Prefers email communication', 'Active'),
+    ('CM002', 'Emma', 'Johnson', 'emma.j@example.com', '+1-555-234-5678', '456 Oak Ave', 'Los Angeles', 'CA', '90001', 'USA', 'Sunshine Inc', 'Business', '2023-02-22', 'Bank Transfer', 'VIP customer', 'Active'),
+    ('CM003', 'Michael', 'Williams', 'm.williams@domain.net', '+1-555-345-6789', '789 Pine Rd', 'Chicago', 'IL', '60601', 'USA', '', 'Individual', '2023-03-10', 'PayPal', 'Responsive to promotions', 'Active'),
+    ('CM004', 'Sophia', 'Brown', 'sophia.brown@mail.com', '+1-555-456-7890', '101 Elm Blvd', 'Houston', 'TX', '77001', 'USA', 'Brown Enterprises', 'Business', '2023-04-05', 'Credit Card', 'International shipping needs', 'Active'),
+    ('CM005', 'James', 'Jones', 'james.jones@company.org', '+1-555-567-8901', '202 Maple Dr', 'Phoenix', 'AZ', '85001', 'USA', '', 'Individual', '2023-05-12', 'Direct Debit', 'Often requests discounts', 'Active'),
+    ('CM006', 'Olivia', 'Garcia', 'olivia.g@inbox.com', '+1-555-678-9012', '303 Cedar Ln', 'Philadelphia', 'PA', '19101', 'USA', 'Garcia & Sons', 'Business', '2023-06-20', 'Credit Card', 'Requires detailed invoices', 'Active'),
+    ('CM007', 'Robert', 'Miller', 'r.miller@connect.io', '+1-555-789-0123', '404 Birch Pl', 'San Antonio', 'TX', '78201', 'USA', '', 'Individual', '2023-07-07', 'PayPal', 'Prefers phone contact', 'Active'),
+    ('CM008', 'Emily', 'Davis', 'emily.davis@network.net', '+1-555-890-1234', '505 Walnut St', 'San Diego', 'CA', '92101', 'USA', 'Davis Industries', 'Business', '2023-08-18', 'Bank Transfer', 'High-value client', 'Active'),
+    ('CM009', 'William', 'Rodriguez', 'w.rodriguez@mail.net', '+1-555-901-2345', '606 Spruce Ave', 'Dallas', 'TX', '75201', 'USA', '', 'Individual', '2023-09-29', 'Credit Card', 'Weekend deliveries only', 'Inactive'),
+    ('CM010', 'Ava', 'Martinez', 'ava.m@domain.com', '+1-555-012-3456', '707 Fir Dr', 'San Jose', 'CA', '95101', 'USA', 'Martinez LLC', 'Business', '2023-10-14', 'Direct Debit', 'Bulk order customer', 'Active'),
+    ('CM011', 'Thomas', 'Hernandez', 'thomas.h@company.com', '+44-20-1234-5678', '8 Oxford St', 'London', 'Greater London', 'W1D 1BS', 'UK', 'Hernandez Global', 'Business', '2023-11-03', 'Credit Card', 'EU market specialist', 'Active'),
+    ('CM012', 'Isabella', 'Moore', 'i.moore@mail.co.uk', '+44-20-2345-6789', '15 Baker St', 'London', 'Greater London', 'NW1 6XE', 'UK', '', 'Individual', '2023-12-21', 'PayPal', 'Returns frequently', 'Active'),
+    ('CM013', 'Charles', 'Taylor', 'c.taylor@network.co.uk', '+44-20-3456-7890', '22 King''s Rd', 'Manchester', 'Greater Manchester', 'M60 1NW', 'UK', 'Taylor Traders', 'Business', '2024-01-09', 'Bank Transfer', 'Quarterly bulk orders', 'Active'),
+    ('CM014', 'Mia', 'Thomas', 'mia.t@connect.co.uk', '+44-20-4567-8901', '37 Queen St', 'Edinburgh', 'Scotland', 'EH2 1JQ', 'UK', '', 'Individual', '2024-02-17', 'Credit Card', 'Seasonal shopper', 'Inactive'),
+    ('CM015', 'Joseph', 'White', 'j.white@domain.co.uk', '+44-20-5678-9012', '44 Castle St', 'Cardiff', 'Wales', 'CF10 1BS', 'UK', 'White Innovations', 'Business', '2024-03-25', 'Direct Debit', 'Tech industry client', 'Active'),
+    ('CM016', 'Sofia', 'Clark', 'sofia.c@email.ca', '+1-416-123-4567', '55 Bay St', 'Toronto', 'Ontario', 'M5J 2R8', 'Canada', 'Clark Solutions', 'Business', '2024-04-02', 'Credit Card', 'Needs French documentation', 'Active'),
+    ('CM017', 'David', 'Hall', 'david.hall@inbox.ca', '+1-416-234-5678', '66 Front St W', 'Toronto', 'Ontario', 'M5J 1E6', 'Canada', '', 'Individual', '2024-05-11', 'PayPal', 'Interested in new products', 'Active'),
+    ('CM018', 'Camila', 'Wood', 'c.wood@connect.ca', '+1-604-345-6789', '77 Robson St', 'Vancouver', 'British Columbia', 'V6B 2A1', 'Canada', 'Wood Enterprises', 'Business', '2024-06-20', 'Bank Transfer', 'Monthly subscription', 'Active'),
+    ('CM019', 'Alexander', 'Lee', 'alex.lee@network.ca', '+1-514-456-7890', '88 Sainte-Catherine W', 'Montreal', 'Quebec', 'H3B 1E3', 'Canada', '', 'Individual', '2024-07-03', 'Credit Card', 'Bilingual communications', 'Inactive'),
+    ('CM020', 'Victoria', 'Young', 'v.young@domain.ca', '+1-403-567-8901', '99 Stephen Ave', 'Calgary', 'Alberta', 'T2P 1K3', 'Canada', 'Young Group', 'Business', '2024-08-15', 'Direct Debit', 'Oil industry client', 'Active');
+    
+    -- Insert more customers (21-40)
+    INSERT INTO [dbo].[Customers] (
+        [CustomerId], [FirstName], [LastName], [Email], [PhoneNumber], 
+        [StreetAddress], [City], [StateProvince], [PostalCode], [Country], 
+        [CompanyName], [CustomerType], [RegistrationDate], [PaymentMethod], [Notes], [Status]
+    )
+    VALUES
+    ('CM021', 'Benjamin', 'Kim', 'ben.kim@mail.au', '+61-2-1234-5678', '111 George St', 'Sydney', 'New South Wales', '2000', 'Australia', 'Kim Enterprises', 'Business', '2024-09-22', 'Credit Card', 'APAC expansion partner', 'Active'),
+    ('CM022', 'Charlotte', 'Martin', 'charlotte.m@inbox.au', '+61-2-2345-6789', '222 Pitt St', 'Sydney', 'New South Wales', '2000', 'Australia', '', 'Individual', '2024-10-08', 'PayPal', 'Vacation property owner', 'Active'),
+    ('CM023', 'Ethan', 'Walker', 'e.walker@connect.au', '+61-3-3456-7890', '333 Collins St', 'Melbourne', 'Victoria', '3000', 'Australia', 'Walker Solutions', 'Business', '2024-11-19', 'Bank Transfer', 'Loyalty program member', 'Active'),
+    ('CM024', 'Amelia', 'Harris', 'amelia.h@domain.au', '+61-8-4567-8901', '444 Murray St', 'Perth', 'Western Australia', '6000', 'Australia', '', 'Individual', '2024-12-05', 'Credit Card', 'Eco-friendly options preferred', 'Inactive'),
+    ('CM025', 'Daniel', 'Thompson', 'd.thompson@network.au', '+61-7-5678-9012', '555 Queen St', 'Brisbane', 'Queensland', '4000', 'Australia', 'Thompson Tech', 'Business', '2025-01-14', 'Direct Debit', 'Fast-growing startup', 'Active'),
+    ('CM026', 'Harper', 'Anderson', 'harper.a@company.de', '+49-30-1234-5678', '66 Unter den Linden', 'Berlin', 'Berlin', '10117', 'Germany', 'Anderson GmbH', 'Business', '2025-02-03', 'Credit Card', 'EU distribution hub', 'Active'),
+    ('CM027', 'Matthew', 'Schulz', 'm.schulz@mail.de', '+49-89-2345-6789', '77 Marienplatz', 'Munich', 'Bavaria', '80331', 'Germany', '', 'Individual', '2025-03-16', 'PayPal', 'Prefers German language', 'Active'),
+    ('CM028', 'Evelyn', 'Fischer', 'e.fischer@domain.de', '+49-40-3456-7890', '88 Reeperbahn', 'Hamburg', 'Hamburg', '20359', 'Germany', 'Fischer Import/Export', 'Business', '2025-04-25', 'Bank Transfer', 'Wholesale customer', 'Active'),
+    ('CM029', 'Sebastian', 'Weber', 's.weber@connect.de', '+49-69-4567-8901', '99 Zeil', 'Frankfurt', 'Hesse', '60313', 'Germany', '', 'Individual', '2025-05-10', 'Credit Card', 'Technical background', 'Inactive'),
+    ('CM030', 'Abigail', 'Meyer', 'abigail.m@inbox.de', '+49-211-5678-9012', '110 Königsallee', 'Düsseldorf', 'North Rhine-Westphalia', '40215', 'Germany', 'Meyer Logistics', 'Business', '2025-06-18', 'Direct Debit', 'Supply chain specialist', 'Active'),
+    ('CM031', 'Ryan', 'Tanaka', 'r.tanaka@mail.jp', '+81-3-1234-5678', '1-1 Marunouchi', 'Tokyo', 'Tokyo', '100-0005', 'Japan', 'Tanaka Corporation', 'Business', '2023-01-20', 'Credit Card', 'International expansion', 'Active'),
+    ('CM032', 'Chloe', 'Yamamoto', 'c.yamamoto@domain.jp', '+81-3-2345-6789', '2-2 Ginza', 'Tokyo', 'Tokyo', '104-0061', 'Japan', '', 'Individual', '2023-02-14', 'PayPal', 'Frequent traveler', 'Active'),
+    ('CM033', 'Andrew', 'Nakamura', 'a.nakamura@network.jp', '+81-6-3456-7890', '3-3 Dotonbori', 'Osaka', 'Osaka', '542-0071', 'Japan', 'Nakamura Trading Co.', 'Business', '2023-03-29', 'Bank Transfer', 'Seasonal inventory cycles', 'Active'),
+    ('CM034', 'Zoe', 'Suzuki', 'zoe.s@connect.jp', '+81-75-4567-8901', '4-4 Gion', 'Kyoto', 'Kyoto', '605-0074', 'Japan', '', 'Individual', '2023-04-30', 'Credit Card', 'Cultural goods interest', 'Inactive'),
+    ('CM035', 'Jack', 'Takahashi', 'j.takahashi@inbox.jp', '+81-45-5678-9012', '5-5 Minato Mirai', 'Yokohama', 'Kanagawa', '220-0012', 'Japan', 'Takahashi Electronics', 'Business', '2023-05-05', 'Direct Debit', 'Tech industry innovator', 'Active'),
+    ('CM036', 'Leah', 'Park', 'leah.p@mail.kr', '+82-2-1234-5678', '11 Gangnam-daero', 'Seoul', 'Seoul', '06000', 'South Korea', 'Park Digital', 'Business', '2023-06-24', 'Credit Card', 'Mobile app developer', 'Active'),
+    ('CM037', 'Samuel', 'Kim', 'samuel.k@domain.kr', '+82-2-2345-6789', '22 Sejong-daero', 'Seoul', 'Seoul', '03186', 'South Korea', '', 'Individual', '2023-07-30', 'PayPal', 'Early technology adopter', 'Active'),
+    ('CM038', 'Nora', 'Choi', 'n.choi@company.kr', '+82-51-3456-7890', '33 Haeundae-ro', 'Busan', 'Busan', '48099', 'South Korea', 'Choi Imports', 'Business', '2023-08-12', 'Bank Transfer', 'Fashion industry', 'Active'),
+    ('CM039', 'Christopher', 'Jeong', 'c.jeong@connect.kr', '+82-32-4567-8901', '44 Songdo-daero', 'Incheon', 'Incheon', '22004', 'South Korea', '', 'Individual', '2023-09-19', 'Credit Card', 'Logistics specialist', 'Inactive'),
+    ('CM040', 'Lily', 'Kang', 'lily.k@network.kr', '+82-53-5678-9012', '55 Dongseong-ro', 'Daegu', 'Daegu', '41944', 'South Korea', 'Kang Innovations', 'Business', '2023-10-26', 'Direct Debit', 'R&D partnership', 'Active');
+    
+    -- Insert more customers (41-60)
+    INSERT INTO [dbo].[Customers] (
+        [CustomerId], [FirstName], [LastName], [Email], [PhoneNumber], 
+        [StreetAddress], [City], [StateProvince], [PostalCode], [Country], 
+        [CompanyName], [CustomerType], [RegistrationDate], [PaymentMethod], [Notes], [Status]
+    )
+    VALUES
+    ('CM041', 'Gabriel', 'Silva', 'g.silva@mail.br', '+55-11-1234-5678', '123 Av. Paulista', 'São Paulo', 'São Paulo', '01310-000', 'Brazil', 'Silva Comércio', 'Business', '2023-11-04', 'Credit Card', 'Import/Export specialist', 'Active'),
+    ('CM042', 'Aurora', 'Santos', 'aurora.s@domain.br', '+55-11-2345-6789', '456 Rua Oscar Freire', 'São Paulo', 'São Paulo', '01426-000', 'Brazil', '', 'Individual', '2023-12-11', 'PayPal', 'Luxury market consumer', 'Active'),
+    ('CM043', 'Nathan', 'Oliveira', 'n.oliveira@company.br', '+55-21-3456-7890', '789 Av. Atlântica', 'Rio de Janeiro', 'Rio de Janeiro', '22010-000', 'Brazil', 'Oliveira Distribuidora', 'Business', '2024-01-22', 'Bank Transfer', 'Tourism sector partner', 'Active'),
+    ('CM044', 'Stella', 'Costa', 'stella.c@inbox.br', '+55-71-4567-8901', '101 Av. Oceânica', 'Salvador', 'Bahia', '40140-130', 'Brazil', '', 'Individual', '2024-02-28', 'Credit Card', 'Event planner', 'Inactive'),
+    ('CM045', 'Aaron', 'Ribeiro', 'a.ribeiro@network.br', '+55-41-5678-9012', '202 Rua XV de Novembro', 'Curitiba', 'Paraná', '80020-310', 'Brazil', 'Ribeiro Tech', 'Business', '2024-03-15', 'Direct Debit', 'Software solutions provider', 'Active'),
+    ('CM046', 'Ellie', 'Wang', 'ellie.w@mail.cn', '+86-10-1234-5678', '33 Chang''an Avenue', 'Beijing', 'Beijing', '100004', 'China', 'Wang Enterprises', 'Business', '2024-04-09', 'Credit Card', 'Manufacturing partner', 'Active'),
+    ('CM047', 'Jonathan', 'Liu', 'j.liu@domain.cn', '+86-10-2345-6789', '44 Wangfujing St', 'Beijing', 'Beijing', '100006', 'China', '', 'Individual', '2024-05-17', 'PayPal', 'Academic researcher', 'Active'),
+    ('CM048', 'Scarlett', 'Zhang', 's.zhang@company.cn', '+86-21-3456-7890', '55 Nanjing Road E', 'Shanghai', 'Shanghai', '200001', 'China', 'Zhang Industries', 'Business', '2024-06-29', 'Bank Transfer', 'Retail distribution network', 'Active'),
+    ('CM049', 'Leo', 'Chen', 'leo.chen@connect.cn', '+86-20-4567-8901', '66 Beijing Road', 'Guangzhou', 'Guangdong', '510000', 'China', '', 'Individual', '2024-07-08', 'Credit Card', 'International student', 'Inactive'),
+    ('CM050', 'Madison', 'Wu', 'madison.w@network.cn', '+86-755-5678-9012', '77 Shennan Blvd', 'Shenzhen', 'Guangdong', '518000', 'China', 'Wu Technology', 'Business', '2024-08-16', 'Direct Debit', 'Electronics manufacturer', 'Active'),
+    ('CM051', 'Henry', 'Singh', 'h.singh@mail.in', '+91-11-1234-5678', '11 Connaught Place', 'New Delhi', 'Delhi', '110001', 'India', 'Singh Enterprises', 'Business', '2024-09-05', 'Credit Card', 'IT services provider', 'Active'),
+    ('CM052', 'Luna', 'Patel', 'luna.p@domain.in', '+91-11-2345-6789', '22 Rajpath', 'New Delhi', 'Delhi', '110001', 'India', '', 'Individual', '2024-10-12', 'PayPal', 'Design consultant', 'Active'),
+    ('CM053', 'Owen', 'Sharma', 'o.sharma@company.in', '+91-22-3456-7890', '33 Marine Drive', 'Mumbai', 'Maharashtra', '400020', 'India', 'Sharma Solutions', 'Business', '2024-11-23', 'Bank Transfer', 'Financial services partner', 'Active'),
+    ('CM054', 'Bella', 'Kumar', 'bella.k@inbox.in', '+91-80-4567-8901', '44 MG Road', 'Bengaluru', 'Karnataka', '560001', 'India', '', 'Individual', '2024-12-30', 'Credit Card', 'Tech early adopter', 'Inactive'),
+    ('CM055', 'Wyatt', 'Gupta', 'w.gupta@network.in', '+91-33-5678-9012', '55 Park Street', 'Kolkata', 'West Bengal', '700016', 'India', 'Gupta Technologies', 'Business', '2025-01-18', 'Direct Debit', 'Software development', 'Active'),
+    ('CM056', 'Elena', 'Novikov', 'elena.n@mail.ru', '+7-495-123-4567', '10 Tverskaya St', 'Moscow', 'Moscow', '125009', 'Russia', 'Novikov Trading', 'Business', '2025-02-25', 'Credit Card', 'Energy sector consultant', 'Active'),
+    ('CM057', 'Caleb', 'Petrov', 'c.petrov@domain.ru', '+7-495-234-5678', '20 Arbat St', 'Moscow', 'Moscow', '119002', 'Russia', '', 'Individual', '2025-03-14', 'PayPal', 'Art collector', 'Active'),
+    ('CM058', 'Aria', 'Ivanov', 'aria.i@company.ru', '+7-812-345-6789', '30 Nevsky Prospect', 'Saint Petersburg', 'Saint Petersburg', '191025', 'Russia', 'Ivanov Logistics', 'Business', '2025-04-21', 'Bank Transfer', 'Baltic shipping specialist', 'Active'),
+    ('CM059', 'Isaac', 'Sokolov', 'i.sokolov@connect.ru', '+7-343-456-7890', '40 Lenin Ave', 'Yekaterinburg', 'Sverdlovsk Oblast', '620014', 'Russia', '', 'Individual', '2025-05-05', 'Credit Card', 'Mining industry background', 'Inactive'),
+    ('CM060', 'Clara', 'Smirnov', 'clara.s@inbox.ru', '+7-383-567-8901', '50 Krasny Prospect', 'Novosibirsk', 'Novosibirsk Oblast', '630099', 'Russia', 'Smirnov Research', 'Business', '2025-06-11', 'Direct Debit', 'Scientific equipment supplier', 'Active');
+
+    -- Insert remaining customers (61-100)
+    INSERT INTO [dbo].[Customers] (
+        [CustomerId], [FirstName], [LastName], [Email], [PhoneNumber], 
+        [StreetAddress], [City], [StateProvince], [PostalCode], [Country], 
+        [CompanyName], [CustomerType], [RegistrationDate], [PaymentMethod], [Notes], [Status]
+    )
+    VALUES
+    ('CM061', 'Hudson', 'Moreau', 'h.moreau@mail.fr', '+33-1-1234-5678', '15 Avenue des Champs-Élysées', 'Paris', 'Île-de-France', '75008', 'France', 'Moreau et Cie', 'Business', '2023-02-03', 'Credit Card', 'Luxury goods distributor', 'Active'),
+    ('CM062', 'Layla', 'Dubois', 'layla.d@domain.fr', '+33-1-2345-6789', '25 Rue de Rivoli', 'Paris', 'Île-de-France', '75004', 'France', '', 'Individual', '2023-03-19', 'PayPal', 'Fashion industry professional', 'Active'),
+    ('CM063', 'Miles', 'Bernard', 'm.bernard@company.fr', '+33-4-3456-7890', '35 La Canebière', 'Marseille', 'Provence-Alpes-Côte d''Azur', '13001', 'France', 'Bernard Distribution', 'Business', '2023-04-27', 'Bank Transfer', 'Mediterranean shipping', 'Active'),
+    ('CM064', 'Willow', 'Laurent', 'willow.l@connect.fr', '+33-3-4567-8901', '45 Rue de la Liberté', 'Dijon', 'Bourgogne-Franche-Comté', '21000', 'France', '', 'Individual', '2023-05-04', 'Credit Card', 'Culinary enthusiast', 'Inactive'),
+    ('CM065', 'Julian', 'Rousseau', 'j.rousseau@network.fr', '+33-5-5678-9012', '55 Cours de l''Intendance', 'Bordeaux', 'Nouvelle-Aquitaine', '33000', 'France', 'Rousseau Wines', 'Business', '2023-06-14', 'Direct Debit', 'Wine exporter', 'Active'),
+    ('CM066', 'Ruby', 'Gomez', 'ruby.g@mail.mx', '+52-55-1234-5678', '100 Paseo de la Reforma', 'Mexico City', 'Mexico City', '06600', 'Mexico', 'Gomez Imports', 'Business', '2023-07-21', 'Credit Card', 'US-Mexico trade specialist', 'Active'),
+    ('CM067', 'Asher', 'Hernandez', 'asher.h@domain.mx', '+52-55-2345-6789', '200 Av. Insurgentes Sur', 'Mexico City', 'Mexico City', '03100', 'Mexico', '', 'Individual', '2023-08-07', 'PayPal', 'Remote worker', 'Active'),
+    ('CM068', 'Autumn', 'Rodriguez', 'autumn.r@company.mx', '+52-33-3456-7890', '300 Av. Vallarta', 'Guadalajara', 'Jalisco', '44130', 'Mexico', 'Rodriguez Manufacturing', 'Business', '2023-09-16', 'Bank Transfer', 'Automotive parts supplier', 'Active'),
+    ('CM069', 'Chase', 'Torres', 'chase.t@inbox.mx', '+52-81-4567-8901', '400 Av. Constitución', 'Monterrey', 'Nuevo León', '64000', 'Mexico', '', 'Individual', '2023-10-23', 'Credit Card', 'Engineering background', 'Inactive'),
+    ('CM070', 'Paisley', 'Flores', 'paisley.f@network.mx', '+52-998-567-8901', '500 Blvd. Kukulcán', 'Cancún', 'Quintana Roo', '77500', 'Mexico', 'Flores Tourism', 'Business', '2023-11-09', 'Direct Debit', 'Hospitality industry', 'Active'),
+    ('CM071', 'Xavier', 'Rossi', 'x.rossi@mail.it', '+39-06-1234-5678', '10 Via del Corso', 'Rome', 'Lazio', '00186', 'Italy', 'Rossi Design', 'Business', '2023-12-18', 'Credit Card', 'Fashion industry innovator', 'Active'),
+    ('CM072', 'Hazel', 'Ferrari', 'hazel.f@domain.it', '+39-06-2345-6789', '20 Via Veneto', 'Rome', 'Lazio', '00187', 'Italy', '', 'Individual', '2024-01-25', 'PayPal', 'Art historian', 'Active'),
+    ('CM073', 'Eli', 'Marino', 'e.marino@company.it', '+39-02-3456-7890', '30 Via Montenapoleone', 'Milan', 'Lombardy', '20121', 'Italy', 'Marino Fashion House', 'Business', '2024-02-13', 'Bank Transfer', 'Textile industry leader', 'Active'),
+    ('CM074', 'Violet', 'Ricci', 'violet.r@connect.it', '+39-041-456-7890', '40 Riva degli Schiavoni', 'Venice', 'Veneto', '30122', 'Italy', '', 'Individual', '2024-03-20', 'Credit Card', 'Tourism professional', 'Inactive'),
+    ('CM075', 'Levi', 'Conti', 'l.conti@network.it', '+39-055-567-8901', '50 Via Tornabuoni', 'Florence', 'Tuscany', '50123', 'Italy', 'Conti Vineyards', 'Business', '2024-04-06', 'Direct Debit', 'Wine producer', 'Active'),
+    ('CM076', 'Alice', 'Gonzalez', 'alice.g@mail.es', '+34-91-123-4567', '5 Gran Vía', 'Madrid', 'Community of Madrid', '28013', 'Spain', 'Gonzalez Trading', 'Business', '2024-05-22', 'Credit Card', 'EU market specialist', 'Active'),
+    ('CM077', 'Silas', 'Rodriguez', 'silas.r@domain.es', '+34-91-234-5678', '15 Calle de Serrano', 'Madrid', 'Community of Madrid', '28001', 'Spain', '', 'Individual', '2024-06-08', 'PayPal', 'Digital nomad', 'Active'),
+    ('CM078', 'Hannah', 'Fernandez', 'h.fernandez@company.es', '+34-93-345-6789', '25 La Rambla', 'Barcelona', 'Catalonia', '08002', 'Spain', 'Fernandez Imports', 'Business', '2024-07-17', 'Bank Transfer', 'Mediterranean shipping', 'Active'),
+    ('CM079', 'Carter', 'Martinez', 'carter.m@inbox.es', '+34-96-456-7890', '35 Plaza del Ayuntamiento', 'Valencia', 'Valencian Community', '46002', 'Spain', '', 'Individual', '2024-08-24', 'Credit Card', 'Agricultural background', 'Inactive'),
+    ('CM080', 'Lucy', 'Lopez', 'lucy.l@network.es', '+34-95-567-8901', '45 Calle Sierpes', 'Seville', 'Andalusia', '41004', 'Spain', 'Lopez Olive Oil', 'Business', '2024-09-12', 'Direct Debit', 'Food industry exporter', 'Active'),
+    ('CM081', 'Maverick', 'van der Berg', 'm.vandenberg@mail.nl', '+31-20-123-4567', '1 Dam Square', 'Amsterdam', 'North Holland', '1012 JL', 'Netherlands', 'Van der Berg Trading', 'Business', '2024-10-19', 'Credit Card', 'International logistics', 'Active'),
+    ('CM082', 'Ivy', 'de Vries', 'ivy.devries@domain.nl', '+31-20-234-5678', '2 Prinsengracht', 'Amsterdam', 'North Holland', '1015 DV', 'Netherlands', '', 'Individual', '2024-11-26', 'PayPal', 'Sustainable lifestyle advocate', 'Active'),
+    ('CM083', 'Jaxon', 'Bakker', 'j.bakker@company.nl', '+31-10-345-6789', '3 Coolsingel', 'Rotterdam', 'South Holland', '3011 AD', 'Netherlands', 'Bakker Shipping', 'Business', '2024-12-03', 'Bank Transfer', 'Port logistics specialist', 'Active'),
+    ('CM084', 'Audrey', 'Janssen', 'audrey.j@connect.nl', '+31-30-456-7890', '4 Oudegracht', 'Utrecht', 'Utrecht', '3511 AM', 'Netherlands', '', 'Individual', '2025-01-11', 'Credit Card', 'University researcher', 'Inactive'),
+    ('CM085', 'Ezra', 'Visser', 'e.visser@network.nl', '+31-40-567-8901', '5 Markt', 'Eindhoven', 'North Brabant', '5611 EB', 'Netherlands', 'Visser Technologies', 'Business', '2025-02-28', 'Direct Debit', 'Tech innovations', 'Active'),
+    ('CM086', 'Nova', 'Ahmed', 'nova.a@mail.ae', '+971-4-123-4567', '10 Sheikh Zayed Rd', 'Dubai', 'Dubai', '123456', 'United Arab Emirates', 'Ahmed International', 'Business', '2025-03-05', 'Credit Card', 'Global trade consultant', 'Active'),
+    ('CM087', 'Grayson', 'Mahmoud', 'g.mahmoud@domain.ae', '+971-4-234-5678', '20 Jumeirah Beach Rd', 'Dubai', 'Dubai', '234567', 'United Arab Emirates', '', 'Individual', '2025-04-14', 'PayPal', 'Luxury property investor', 'Active'),
+    ('CM088', 'Eleanor', 'Al-Farsi', 'e.alfarsi@company.ae', '+971-2-345-6789', '30 Corniche Rd', 'Abu Dhabi', 'Abu Dhabi', '345678', 'United Arab Emirates', 'Al-Farsi Group', 'Business', '2025-05-22', 'Bank Transfer', 'Energy sector specialist', 'Active'),
+    ('CM089', 'Jace', 'Hassan', 'jace.h@connect.ae', '+971-6-456-7890', '40 Al Wahda St', 'Sharjah', 'Sharjah', '456789', 'United Arab Emirates', '', 'Individual', '2025-06-07', 'Credit Card', 'Education consultant', 'Inactive'),
+    ('CM090', 'Mila', 'Mansour', 'mila.m@network.ae', '+971-7-567-8901', '50 Al Muntasir Rd', 'Ras Al Khaimah', 'Ras Al Khaimah', '567890', 'United Arab Emirates', 'Mansour Developments', 'Business', '2025-07-16', 'Direct Debit', 'Real estate developer', 'Active'),
+    ('CM091', 'Zane', 'Andersson', 'z.andersson@mail.se', '+46-8-123-4567', '10 Drottninggatan', 'Stockholm', 'Stockholm County', '111 51', 'Sweden', 'Andersson Innovation', 'Business', '2023-01-05', 'Credit Card', 'Clean technology pioneer', 'Active'),
+    ('CM092', 'Lillian', 'Lindberg', 'l.lindberg@domain.se', '+46-8-234-5678', '20 Götgatan', 'Stockholm', 'Stockholm County', '116 46', 'Sweden', '', 'Individual', '2023-02-13', 'PayPal', 'Design professional', 'Active'),
+    ('CM093', 'Felix', 'Karlsson', 'f.karlsson@company.se', '+46-31-345-6789', '30 Avenyn', 'Gothenburg', 'Västra Götaland County', '411 36', 'Sweden', 'Karlsson Engineering', 'Business', '2023-03-22', 'Bank Transfer', 'Automotive innovation', 'Active'),
+    ('CM094', 'Adelaide', 'Nilsson', 'adelaide.n@connect.se', '+46-40-456-7890', '40 Södergatan', 'Malmö', 'Skåne County', '211 34', 'Sweden', '', 'Individual', '2023-04-09', 'Credit Card', 'Sustainability consultant', 'Inactive'),
+    ('CM095', 'Bennett', 'Eriksson', 'b.eriksson@network.se', '+46-18-567-8901', '50 Svartbäcksgatan', 'Uppsala', 'Uppsala County', '753 20', 'Sweden', 'Eriksson Woodcraft', 'Business', '2023-05-18', 'Direct Debit', 'Furniture designer', 'Active'),
+    ('CM096', 'Delilah', 'Santos', 'd.santos@mail.br', '+55-11-890-1234', '606 Rua Augusta', 'São Paulo', 'São Paulo', '01304-000', 'Brazil', 'Santos Tech', 'Business', '2023-06-26', 'Credit Card', 'Software development', 'Active'),
+    ('CM097', 'Wesley', 'Dias', 'w.dias@inbox.br', '+55-21-901-2345', '707 Av. Rio Branco', 'Rio de Janeiro', 'Rio de Janeiro', '20040-002', 'Brazil', '', 'Individual', '2023-07-15', 'PayPal', 'Marketing professional', 'Active'),
+    ('CM098', 'Caroline', 'Ferreira', 'c.ferreira@connect.br', '+55-31-012-3456', '808 Av. Afonso Pena', 'Belo Horizonte', 'Minas Gerais', '30130-002', 'Brazil', 'Ferreira Consulting', 'Business', '2023-08-23', 'Bank Transfer', 'Business development', 'Active'),
+    ('CM099', 'Rowan', 'Lima', 'rowan.l@domain.br', '+55-51-123-4567', '909 Rua dos Andradas', 'Porto Alegre', 'Rio Grande do Sul', '90020-004', 'Brazil', '', 'Individual', '2023-09-01', 'Credit Card', 'Remote worker', 'Inactive'),
+    ('CM100', 'Leilani', 'Almeida', 'l.almeida@network.br', '+55-85-234-5678', '1010 Av. Beira Mar', 'Fortaleza', 'Ceará', '60165-121', 'Brazil', 'Almeida Exports', 'Business', '2023-10-10', 'Direct Debit', 'Agricultural products exporter', 'Active');
+END
+GO
+
+-- Execute the procedure
+EXEC InsertCustomerData;
+GO
+
+-- Clean up the temporary procedure
+DROP PROCEDURE InsertCustomerData;
+GO
+
+-- Set Identity_Insert ON if needed for any identity columns
+-- If you have identity columns, you might need to add:
+-- SET IDENTITY_INSERT [dbo].[Customers] ON;
+-- SET IDENTITY_INSERT [dbo].[Customers] OFF;
+
+PRINT 'Customer data has been loaded successfully.';
+PRINT 'Total records imported: 100';
+GO
