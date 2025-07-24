@@ -13,7 +13,7 @@ namespace CustomerManagement.Application.Features.Customers.Queries
     {
         public class Query : IRequest<CustomerDto?>
         {
-            public string Id { get; set; } = null!;
+            public string CustomerId { get; set; } = null!;
         }
 
         public class Handler : IRequestHandler<Query, CustomerDto?>
@@ -33,12 +33,12 @@ namespace CustomerManagement.Application.Features.Customers.Queries
             {
                 try
                 {
-                    var customer = await _customerRepository.GetByIdAsync(request.Id);
+                    var customer = await _customerRepository.GetByIdAsync(request.CustomerId);
                     return customer != null ? _mapper.Map<CustomerDto>(customer) : null;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred while getting customer with ID: {CustomerId}", request.Id);
+                    _logger.LogError(ex, "Error occurred while getting customer with ID: {CustomerId}", request.CustomerId);
                     throw;
                 }
             }

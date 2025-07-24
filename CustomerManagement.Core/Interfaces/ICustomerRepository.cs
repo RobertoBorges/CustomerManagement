@@ -7,12 +7,12 @@ namespace CustomerManagement.Core.Interfaces
     public interface ICustomerRepository
     {
         Task<IEnumerable<Customer>> GetAllAsync();
-        Task<Customer?> GetByIdAsync(string id);
+        Task<Customer?> GetByIdAsync(string customerId);
         Task<IEnumerable<Customer>> GetByNameAsync(string searchTerm);
         Task<IEnumerable<Customer>> GetByStatusAsync(string status);
         Task<IEnumerable<Customer>> GetByCustomerTypeAsync(string customerType);
         Task<Customer> AddAsync(Customer customer);
         Task<bool> UpdateAsync(Customer customer);
-        Task<bool> DeleteAsync(string id);
+        Task<bool> DeleteAsync(string customerId);
     }
 }

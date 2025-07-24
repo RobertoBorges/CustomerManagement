@@ -35,7 +35,7 @@ namespace CustomerManagement.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<ActionResult<CustomerDto>> GetCustomer(string id)
         {
-            var customer = await _mediator.Send(new GetCustomerById.Query { Id = id });
+            var customer = await _mediator.Send(new GetCustomerById.Query { CustomerId = id });
             
             if (customer == null)
             {
@@ -53,7 +53,7 @@ namespace CustomerManagement.Api.Controllers
         {
             var customer = await _mediator.Send(new CreateCustomer.Command { CustomerDto = customerDto });
             
-            return CreatedAtAction(nameof(GetCustomer), new { id = customer.Id }, customer);
+            return CreatedAtAction(nameof(GetCustomer), new { id = customer.CustomerId }, customer);
         }
 
         // PUT: api/Customers/CM001
@@ -63,7 +63,7 @@ namespace CustomerManagement.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateCustomer(string id, [FromBody] CreateUpdateCustomerDto customerDto)
         {
-            var result = await _mediator.Send(new UpdateCustomer.Command { Id = id, CustomerDto = customerDto });
+            var result = await _mediator.Send(new UpdateCustomer.Command { CustomerId = id, CustomerDto = customerDto });
             
             if (!result)
             {
@@ -79,7 +79,7 @@ namespace CustomerManagement.Api.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> DeleteCustomer(string id)
         {
-            var result = await _mediator.Send(new DeleteCustomer.Command { Id = id });
+            var result = await _mediator.Send(new DeleteCustomer.Command { CustomerId = id });
             
             if (!result)
             {

@@ -53,7 +53,7 @@ namespace CustomerManagement.Infrastructure.Data
 
                     var customer = new Customer
                     {
-                        Id = values[0],
+                        CustomerId = values[0],
                         FirstName = values[1],
                         LastName = values[2],
                         Email = values[3],

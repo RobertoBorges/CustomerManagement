@@ -14,7 +14,7 @@ namespace CustomerManagement.Application.Common.Mappings
 
             // DTO to Entity
             CreateMap<CreateUpdateCustomerDto, Customer>()
-                .ForMember(dest => dest.Id, opt => opt.Ignore()) // ID is managed by the repository
+                .ForMember(dest => dest.CustomerId, opt => opt.Ignore()) // ID is managed by the repository
                 .ForMember(dest => dest.RegistrationDate, opt => opt.MapFrom(src => 
                     src.RegistrationDate == default ? DateTime.UtcNow : src.RegistrationDate));
         }

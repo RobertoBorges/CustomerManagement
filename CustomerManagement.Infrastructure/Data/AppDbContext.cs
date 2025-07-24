@@ -18,8 +18,8 @@ namespace CustomerManagement.Infrastructure.Data
             // Configure Customer entity
             modelBuilder.Entity<Customer>(entity =>
             {
-                entity.HasKey(e => e.Id);
-                entity.Property(e => e.Id).IsRequired();
+                entity.HasKey(e => e.CustomerId);
+                entity.Property(e => e.CustomerId).IsRequired();
                 entity.Property(e => e.FirstName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.LastName).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Email).IsRequired().HasMaxLength(100);

@@ -4,7 +4,7 @@ namespace CustomerManagement.Core.Entities
 {
     public class Customer
     {
-        public string Id { get; set; } = null!;
+        public string CustomerId { get; set; } = null!;
         public string FirstName { get; set; } = null!;
         public string LastName { get; set; } = null!;
         public string Email { get; set; } = null!;

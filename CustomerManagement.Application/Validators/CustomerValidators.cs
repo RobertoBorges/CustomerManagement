@@ -8,7 +8,7 @@ namespace CustomerManagement.Application.Validators
     {
         public CreateUpdateCustomerDtoValidator()
         {
-            RuleFor(x => x.Id)
+            RuleFor(x => x.CustomerId)
                 .NotEmpty().WithMessage("{PropertyName} is required")
                 .MaximumLength(10).WithMessage("{PropertyName} must not exceed 10 characters");
 
@@ -84,7 +84,7 @@ namespace CustomerManagement.Application.Validators
     {
         public UpdateCustomerCommandValidator()
         {
-            RuleFor(x => x.Id)
+            RuleFor(x => x.CustomerId)
                 .NotEmpty().WithMessage("Customer ID is required");
             
             RuleFor(x => x.CustomerDto).SetValidator(new CreateUpdateCustomerDtoValidator());

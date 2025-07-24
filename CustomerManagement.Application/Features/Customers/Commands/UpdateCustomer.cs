@@ -14,7 +14,7 @@ namespace CustomerManagement.Application.Features.Customers.Commands
     {
         public class Command : IRequest<bool>
         {
-            public string Id { get; set; } = null!;
+            public string CustomerId { get; set; } = null!;
             public CreateUpdateCustomerDto CustomerDto { get; set; } = null!;
         }
 
@@ -36,14 +36,14 @@ namespace CustomerManagement.Application.Features.Customers.Commands
                 try
                 {
                     // Ensure the ID in the DTO matches the ID in the command
-                    request.CustomerDto.Id = request.Id;
+                    request.CustomerDto.CustomerId = request.CustomerId;
                     
                     var customer = _mapper.Map<Customer>(request.CustomerDto);
                     return await _customerRepository.UpdateAsync(customer);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred while updating customer with ID: {CustomerId}", request.Id);
+                    _logger.LogError(ex, "Error occurred while updating customer with ID: {CustomerId}", request.CustomerId);
                     throw;
                 }
             }

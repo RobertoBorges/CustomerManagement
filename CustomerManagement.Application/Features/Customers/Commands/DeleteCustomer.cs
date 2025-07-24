@@ -11,7 +11,7 @@ namespace CustomerManagement.Application.Features.Customers.Commands
     {
         public class Command : IRequest<bool>
         {
-            public string Id { get; set; } = null!;
+            public string CustomerId { get; set; } = null!;
         }
 
         public class Handler : IRequestHandler<Command, bool>
@@ -29,11 +29,11 @@ namespace CustomerManagement.Application.Features.Customers.Commands
             {
                 try
                 {
-                    return await _customerRepository.DeleteAsync(request.Id);
+                    return await _customerRepository.DeleteAsync(request.CustomerId);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error occurred while deleting customer with ID: {CustomerId}", request.Id);
+                    _logger.LogError(ex, "Error occurred while deleting customer with ID: {CustomerId}", request.CustomerId);
                     throw;
                 }
             }

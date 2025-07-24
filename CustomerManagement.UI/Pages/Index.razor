@@ -91,7 +91,7 @@
                             <MudChip Color="@GetStatusColor(context.Status)" Size="Size.Small">@context.Status</MudChip>
                         </MudTd>
                         <MudTd>
-                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo($"/customers/details/{context.Id}"))" />
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo($"/customers/details/{context.CustomerId}"))" />
                         </MudTd>
                     </RowTemplate>
                 </MudTable>

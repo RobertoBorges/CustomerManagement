@@ -6,7 +6,7 @@ namespace CustomerManagement.Shared.DTOs
     public class CreateUpdateCustomerDto
     {
         [Required(ErrorMessage = "Customer ID is required")]
-        public string Id { get; set; } = null!;
+        public string CustomerId { get; set; } = null!;
 
         [Required(ErrorMessage = "First name is required")]
         [StringLength(100, ErrorMessage = "First name cannot exceed 100 characters")]

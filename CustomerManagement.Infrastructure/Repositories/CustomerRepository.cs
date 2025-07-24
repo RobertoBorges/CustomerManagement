@@ -34,15 +34,15 @@ namespace CustomerManagement.Infrastructure.Repositories
             }
         }
 
-        public async Task<Customer?> GetByIdAsync(string id)
+        public async Task<Customer?> GetByIdAsync(string customerId)
         {
             try
             {
-                return await _context.Customers.FindAsync(id);
+                return await _context.Customers.FindAsync(customerId);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while getting customer with ID: {CustomerId}", id);
+                _logger.LogError(ex, "Error occurred while getting customer with ID: {CustomerId}", customerId);
                 throw;
             }
         }
@@ -102,7 +102,7 @@ namespace CustomerManagement.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while adding customer: {CustomerId}", customer.Id);
+                _logger.LogError(ex, "Error occurred while adding customer: {CustomerId}", customer.CustomerId);
                 throw;
             }
         }
@@ -111,7 +111,7 @@ namespace CustomerManagement.Infrastructure.Repositories
         {
             try
             {
-                var existingCustomer = await _context.Customers.FindAsync(customer.Id);
+                var existingCustomer = await _context.Customers.FindAsync(customer.CustomerId);
                 if (existingCustomer == null)
                 {
                     return false;
@@ -123,7 +123,7 @@ namespace CustomerManagement.Infrastructure.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while updating customer: {CustomerId}", customer.Id);
+                _logger.LogError(ex, "Error occurred while updating customer: {CustomerId}", customer.CustomerId);
                 throw;
             }
         }
