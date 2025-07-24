@@ -1,0 +1,128 @@
+@page "/"
+@using MudBlazor
+@inject NavigationManager NavigationManager
+@inject CustomerManagement.UI.Services.ICustomerService CustomerService
+
+<MudText Typo="Typo.h3" Class="mb-4">Dashboard</MudText>
+
+<MudGrid>
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+            <MudStack>
+                <MudText Typo="Typo.h6">Total Customers</MudText>
+                @if (customers == null)
+                {
+                    <MudSkeleton Width="100%" Height="60px" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.h3" Color="Color.Primary">@customers.Count</MudText>
+                }
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => NavigationManager.NavigateTo("/customers"))">View All</MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+            <MudStack>
+                <MudText Typo="Typo.h6">Active Customers</MudText>
+                @if (customers == null)
+                {
+                    <MudSkeleton Width="100%" Height="60px" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.h3" Color="Color.Success">@customers.Count(c => c.Status.Equals("Active", StringComparison.OrdinalIgnoreCase))</MudText>
+                }
+                <MudButton Variant="Variant.Text" Color="Color.Success" OnClick="@(() => NavigationManager.NavigateTo("/customers"))">View Active</MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+            <MudStack>
+                <MudText Typo="Typo.h6">Inactive Customers</MudText>
+                @if (customers == null)
+                {
+                    <MudSkeleton Width="100%" Height="60px" />
+                }
+                else
+                {
+                    <MudText Typo="Typo.h3" Color="Color.Error">@customers.Count(c => c.Status.Equals("Inactive", StringComparison.OrdinalIgnoreCase))</MudText>
+                }
+                <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => NavigationManager.NavigateTo("/customers"))">View Inactive</MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+    
+    <MudItem xs="12" sm="6" md="3">
+        <MudPaper Elevation="2" Class="pa-4" Style="height: 100%;">
+            <MudStack>
+                <MudText Typo="Typo.h6">Quick Actions</MudText>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" FullWidth="true" OnClick="@(() => NavigationManager.NavigateTo("/customers/create"))">New Customer</MudButton>
+            </MudStack>
+        </MudPaper>
+    </MudItem>
+
+    <MudItem xs="12">
+        <MudPaper Elevation="2" Class="pa-4">
+            <MudText Typo="Typo.h5" Class="mb-4">Recent Customers</MudText>
+            @if (customers == null)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+            else
+            {
+                <MudTable Items="@customers.OrderByDescending(c => c.RegistrationDate).Take(5)" Dense="true" Hover="true" Class="mt-3">
+                    <HeaderContent>
+                        <MudTh>Name</MudTh>
+                        <MudTh>Email</MudTh>
+                        <MudTh>Registration Date</MudTh>
+                        <MudTh>Status</MudTh>
+                        <MudTh>Actions</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Name">@context.FullName</MudTd>
+                        <MudTd DataLabel="Email">@context.Email</MudTd>
+                        <MudTd DataLabel="Registration Date">@context.RegistrationDate.ToShortDateString()</MudTd>
+                        <MudTd DataLabel="Status">
+                            <MudChip Color="@GetStatusColor(context.Status)" Size="Size.Small">@context.Status</MudChip>
+                        </MudTd>
+                        <MudTd>
+                            <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo($"/customers/details/{context.Id}"))" />
+                        </MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudPaper>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private List<CustomerManagement.Shared.DTOs.CustomerDto> customers;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            customers = await CustomerService.GetAllCustomersAsync();
+        }
+        catch (Exception)
+        {
+            customers = new List<CustomerManagement.Shared.DTOs.CustomerDto>();
+        }
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "active" => Color.Success,
+            "inactive" => Color.Error,
+            "pending" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+}

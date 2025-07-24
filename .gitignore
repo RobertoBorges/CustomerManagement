@@ -1,0 +1,119 @@
+# .NET Core/.NET build artifacts
+bin/
+obj/
+*.dll
+*.pdb
+*.exe
+*.user
+*.suo
+*.cache
+*.vsidx
+*.vshistory
+*_i.c
+*_p.c
+*.ilk
+*.meta
+*.obj
+*.iobj
+*.pch
+*.ipdb
+*.pgc
+*.pgd
+*.rsp
+*.sbr
+*.tlb
+*.tli
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.scc
+.vs/
+
+# NuGet packages
+*.nupkg
+packages/
+*.nuget.props
+*.nuget.targets
+project.lock.json
+project.assets.json
+
+# User-specific files
+*.rsuser
+*.userosscache
+*.userprefs
+
+# Visual Studio files
+*.psess
+*.vsp
+*.vspx
+*.sap
+*.jfm
+*.pfx
+*.publishsettings
+orleans.codegen.cs
+
+# ReSharper
+_ReSharper*/
+*.[Rr]e[Ss]harper
+*.DotSettings.user
+
+# Visual Studio IntelliCode
+.vs/
+
+# ASP.NET Scaffolding
+ScaffoldingReadMe.txt
+
+# Visual Studio Temp/Cache Files
+*.publishproj
+*.pubxml
+*.pubxml.user
+.pubxml
+PublishProfiles/
+ServiceDependencies/
+
+# SQLite database files
+*.db
+*.db-shm
+*.db-wal
+
+# Entity Framework Core
+Migrations/
+
+# Blazor WebAssembly
+**/wwwroot/service-worker*.js
+**/wwwroot/service-worker-assets.js
+**/wwwroot/_framework/
+
+# MSBuild Binary and Structured Log
+*.binlog
+
+# Local connection strings that may contain sensitive data
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+
+# logs
+logs/
+*.log
+
+# Others
+node_modules/
+.idea/
+.ionide/
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+
+# Backup files
+*~
+*.bak
+*.swp
+*.swo

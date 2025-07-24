@@ -1,0 +1,65 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "API: .NET Core Launch",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-api",
+            "program": "${workspaceFolder}/CustomerManagement.Api/bin/Debug/net8.0/CustomerManagement.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/CustomerManagement.Api",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "openExternally",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        },
+        {
+            "name": "UI: Blazor WebAssembly",
+            "type": "blazorwasm",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/CustomerManagement.UI",
+            "url": "https://localhost:5001",
+            "browser": "edge"
+        },
+        {
+            "name": ".NET Core Attach",
+            "type": "coreclr",
+            "request": "attach"
+        },
+        {
+            "name": "Full Stack: API + UI",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-all",
+            "program": "${workspaceFolder}/CustomerManagement.Api/bin/Debug/net8.0/CustomerManagement.Api.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}/CustomerManagement.Api",
+            "stopAtEntry": false,
+            "serverReadyAction": {
+                "action": "startDebugging",
+                "name": "UI: Blazor WebAssembly",
+                "pattern": "\\bNow listening on:\\s+(https?://\\S+)"
+            },
+            "env": {
+                "ASPNETCORE_ENVIRONMENT": "Development"
+            },
+            "sourceFileMap": {
+                "/Views": "${workspaceFolder}/Views"
+            }
+        }
+    ],
+    "compounds": [
+        {
+            "name": "API + UI (Manual)",
+            "configurations": ["API: .NET Core Launch", "UI: Blazor WebAssembly"]
+        }
+    ]
+}

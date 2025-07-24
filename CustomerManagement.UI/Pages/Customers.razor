@@ -1,0 +1,172 @@
+@page "/customers"
+@using CustomerManagement.Shared.DTOs
+@using CustomerManagement.UI.Services
+@using MudBlazor
+@inject ICustomerService CustomerService
+@inject NavigationManager NavigationManager
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudText Typo="Typo.h4" Class="mb-4">Customers</MudText>
+
+<MudPaper Class="pa-3 mb-4">
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        </MudItem>
+        <MudItem xs="12" md="6" Class="d-flex justify-end">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" Link="/customers/create">Add Customer</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
+@if (customers == null)
+{
+    <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+}
+else if (!customers.Any())
+{
+    <MudAlert Severity="Severity.Info">No customers found.</MudAlert>
+}
+else
+{
+    <MudTable Items="@customers" Dense="true" Hover="true" Filter="new Func<CustomerDto,bool>(FilterFunc)" @bind-SelectedItem="selectedCustomer">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Customers</MudText>
+            <MudSpacer />
+            <MudSelect T="string" Label="Status Filter" MultiSelection="true" @bind-Value="selectedStatus" @bind-SelectedValues="selectedStatusValues">
+                <MudSelectItem Value="@("Active")">Active</MudSelectItem>
+                <MudSelectItem Value="@("Inactive")">Inactive</MudSelectItem>
+                <MudSelectItem Value="@("Pending")">Pending</MudSelectItem>
+            </MudSelect>
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Email</MudTh>
+            <MudTh>Phone</MudTh>
+            <MudTh>Customer Type</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="Name">@context.FullName</MudTd>
+            <MudTd DataLabel="Email">@context.Email</MudTd>
+            <MudTd DataLabel="Phone">@context.PhoneNumber</MudTd>
+            <MudTd DataLabel="Customer Type">@context.CustomerType</MudTd>
+            <MudTd DataLabel="Status">
+                <MudChip Color="@GetStatusColor(context.Status)" Size="Size.Small">@context.Status</MudChip>
+            </MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Visibility" Color="Color.Primary" Size="Size.Small" OnClick="@(() => ViewCustomer(context.Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Small" OnClick="@(() => EditCustomer(context.Id))" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small" OnClick="@(() => DeleteCustomer(context.Id))" />
+            </MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager PageSizeOptions="new int[] { 5, 10, 25, 50 }" />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    private List<CustomerDto> customers;
+    private CustomerDto selectedCustomer;
+    private string searchString = "";
+    private string selectedStatus = "";
+    private IEnumerable<string> selectedStatusValues = new HashSet<string>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCustomers();
+    }
+
+    private async Task LoadCustomers()
+    {
+        try
+        {
+            customers = await CustomerService.GetAllCustomersAsync();
+        }
+        catch (Exception ex)
+        {
+            Snackbar.Add("Error loading customers: " + ex.Message, Severity.Error);
+            customers = new List<CustomerDto>();
+        }
+    }
+
+    private bool FilterFunc(CustomerDto customer)
+    {
+        // Filter by search string if it's not empty
+        if (string.IsNullOrWhiteSpace(searchString))
+            return FilterByStatus(customer);
+
+        if (customer.FullName.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+            customer.Email.Contains(searchString, StringComparison.OrdinalIgnoreCase) ||
+            customer.PhoneNumber.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+            return FilterByStatus(customer);
+
+        return false;
+    }
+
+    private bool FilterByStatus(CustomerDto customer)
+    {
+        // If no status filters are selected, show all customers
+        if (!selectedStatusValues.Any())
+            return true;
+
+        // Otherwise, only show customers with selected statuses
+        return selectedStatusValues.Any(s => string.Equals(s, customer.Status, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private void ViewCustomer(string id)
+    {
+        NavigationManager.NavigateTo($"/customers/details/{id}");
+    }
+
+    private void EditCustomer(string id)
+    {
+        NavigationManager.NavigateTo($"/customers/edit/{id}");
+    }
+
+    private async Task DeleteCustomer(string id)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ContentText", "Do you really want to delete this customer? This action cannot be undone.");
+        parameters.Add("ButtonText", "Delete");
+        parameters.Add("Color", Color.Error);
+
+        var dialog = await DialogService.ShowAsync<DialogConfirm>("Delete Customer", parameters);
+        var result = await dialog.Result;
+
+        if (!result.Canceled)
+        {
+            try
+            {
+                var success = await CustomerService.DeleteCustomerAsync(id);
+                if (success)
+                {
+                    Snackbar.Add("Customer deleted successfully", Severity.Success);
+                    await LoadCustomers();
+                }
+                else
+                {
+                    Snackbar.Add("Failed to delete customer", Severity.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                Snackbar.Add($"Error: {ex.Message}", Severity.Error);
+            }
+        }
+    }
+
+    private Color GetStatusColor(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "active" => Color.Success,
+            "inactive" => Color.Error,
+            "pending" => Color.Warning,
+            _ => Color.Default
+        };
+    }
+}
